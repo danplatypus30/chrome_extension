@@ -1,0 +1,22 @@
+{
+  "name": "chrome_extension",
+  "version": "1.0.0",
+  "description": "To run the chrome extension,",
+  "main": "background.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/danplatypus30/chrome_extension.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/danplatypus30/chrome_extension/issues"
+  },
+  "homepage": "https://github.com/danplatypus30/chrome_extension#readme",
+  "dependencies": {
+    "axios": "^0.21.1"
+  }
+}
