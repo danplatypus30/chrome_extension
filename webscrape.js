@@ -1,7 +1,7 @@
 const puppeteer = require('puppeteer');
 
 // URL Search Link of website goes here
-const pageURL = '';
+const pageURL = 'https://www.channelnewsasia.com/news/business/tpp-cptpp-trade-deal-signed-singapore-10025856';
 
 (async () => {
   const browser = await puppeteer.launch();
