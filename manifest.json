@@ -15,7 +15,10 @@
         "default_icon": "cute-ghost.png"
     },
     "background": {
-        "scripts": ["webscrape.js"],
+        "scripts": ["jquery-3.5.1.min.js", "test.js"],
         "persistent": false
-    }
+    },
+    "permissions": [
+        "tabs"
+    ]
 }
