@@ -7,7 +7,7 @@ const pageURL = 'https://www.channelnewsasia.com/news/business/tpp-cptpp-trade-d
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
-  await page.goto(PageURL);
+  await page.goto(pageURL);
 
   const links = await page.$$eval('a', elements => elements.filter(element => {
     const parensRegex = /^((?!\().)*$/;
