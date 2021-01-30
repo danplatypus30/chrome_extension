@@ -1,7 +1,29 @@
 
 function addResults(data){
-
-    document.getElementById("legitimacy_results").innerHTML = data;
+    //filter by those between <p> tags
+    const matches = data.match(/<p>(.*?)<\/p>/g); //array of strings between ptags
+    var matchesFormatted = [];
+    for(var a = 0; a < matches.length; a++){
+        //take out the <p> tags
+        var noPtag = matches[a].toString().substr(3, matches[a].length - 7);
+        // //need to take out any other html tags here, including text in between
+        // const htmlStrings = noPtag.match(/<\s*[a-z]*[^>]*>(.*?)<\s*\/\s*[a-z]*>/g); //https://www.regextester.com/27540
+        // if(htmlStrings != null){
+        //     for(var b = 0; b < htmlStrings.length; b++){
+        //         noPtag = noPtag.replace(htmlStrings[b],"");
+        //     }
+        // }
+        //take out single tag html, like <br> <hr>
+        const singlehtmltagstrings = noPtag.match(/<\s*[\/]?\s*[a-z]*[^>]*>/g);
+        if(singlehtmltagstrings != null){
+            for(var c = 0; c < singlehtmltagstrings.length; c++){
+                noPtag = noPtag.replace(singlehtmltagstrings[c],"");
+            }
+        }
+        noPtag = noPtag.replace(/&nbsp;/g, " ");
+        matchesFormatted.push(noPtag);
+    }
+    document.getElementById("legitimacy_results").innerText = matchesFormatted.join(" ");
 }
 
 function addVTResults(data){
@@ -13,10 +35,27 @@ function addVTResults(data){
 // specific elements when it triggers.
 document.addEventListener('DOMContentLoaded', function () {
     //addResults("fake 25%"); //temporary put in because idw to keep calling the api
-    callVirusTotalAPI();
-    callFakeNewsCheckerAPI();
+    //callVirusTotalAPI();
+    //callFakeNewsCheckerAPI();
     //callAzureAPI();
+    getTextFromHtml();
 });
+
+function getTextFromHtml(){
+    // Send a message to the active tab
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        var activeTab = tabs[0];
+        chrome.tabs.executeScript(activeTab.id, {
+            code: `document.body.innerHTML`,
+            allFrames: false, // this is the default
+            runAt: 'document_start', // default is document_idle. See https://stackoverflow.com/q/42509273 for more details.
+        }, function(results) {
+            // results.length must be 1
+            var result = results[0];
+            addResults(result);
+        });
+    });
+}
 
 function callVirusTotalAPI(){
     var scan_url = "www.google.com";
