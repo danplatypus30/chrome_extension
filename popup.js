@@ -1,28 +1,41 @@
 
 function addResults(data){
-    var ifFake = "The website contains fake news";
-    var ifFakeExp = "Our machine learning algorithm has detected fake news on this website";
-    var ifReal = "This website is safe";
-    var ifRealExp = "Nothing wrong has been detected by our algorithms";
-    var legitimacy = false;
-    legitimacy = true;
-    if(legitimacy){
-        document.getElementById("legitimacy_results").innerText = ifReal;
-        document.getElementById("legitimacy_results_exp").innerText = ifRealExp;
+    if(data == "error"){
+        var ifFake = "The website contains fake news";
+        var ifFakeExp = "Our machine learning algorithm has detected fake news on this website";
+        var ifReal = "This website is safe";
+        var ifRealExp = "Nothing wrong has been detected by our algorithms";
+        var legitimacy = false;
+        if(data == "Real"){
+            legitimacy = true;
+        }
+        if(legitimacy){
+            document.getElementById("legitimacy_results").innerText = ifReal;
+            document.getElementById("legitimacy_results_exp").innerText = ifRealExp;
+        } else {
+            document.getElementById("legitimacy_results").innerText = ifFake;
+            document.getElementById("legitimacy_results_exp").innerText = ifFakeExp;
+        }
     } else {
-        document.getElementById("legitimacy_results").innerText = ifFake;
-        document.getElementById("legitimacy_results_exp").innerText = ifFakeExp;
+        document.getElementById("legitimacy_results").innerText = "An error has occurred";
+        document.getElementById("legitimacy_results_exp").innerText = "We are unable to detect any information";
     }
 }
 
 function addVTResults(data){
-    var ifFake = "The website is associated with malicious websites";
-    var ifFakeExp = "VirusTotal has detected malicious presence on this website";
+    //more than 5 hits on malicious we will mark as fake
+    //sample output
+    //{"harmless":75,"malicious":0,"suspicious":0,"timeout":0,"undetected":8}
+    var malicioushits = JSON.parse(data).malicious;
+    var ifFake = "VirusTotal has detected malicious presence on this website";
+    var ifFakeExp = "There are " + malicioushits + " engines that detected this website as malicious";
     var ifReal = "This website is safe";
     var ifRealExp = "Nothing wrong has been detected by VirusTotal"
     var malicious = false;
-    malicious = true;
-    if(malicious){
+    if(malicioushits > 0){
+        malicious = true
+    }
+    if(!malicious){
         document.getElementById("malware_results").innerText = ifReal;
         document.getElementById("malware_results_exp").innerText = ifRealExp;
     } else {
@@ -39,7 +52,11 @@ document.addEventListener('DOMContentLoaded', function () {
     callVirusTotalAPI();
     //callFakeNewsCheckerAPI();
     //callAzureAPI();
-    getTextFromHtml();
+    try{
+        getTextFromHtml();
+    } catch (e) {
+        addResults("error");
+    }
 });
 
 function getTextFromHtml(){
@@ -60,104 +77,114 @@ function getTextFromHtml(){
 
 //returns formatted data
 function filterOutWordsFromHTML(data){
-    //only works if news page uses p tags
-    //filter by those between <p> tags
-    const matches = data.match(/<p(\s[^>]*)?>(.*?)<\s*\/\s*p>/g); //array of strings between <p> or <p class="dfsfd"> tags
-    var matchesFormatted = [];
-    for(var a = 0; a < matches.length; a++){
-        var noPtag = matches[a].toString();
-        //take out all the html tags
-        noPtag = noPtag.replace(/<\s*[\/]?\s*[a-z]*[^>]*>/g, "");
-        // //need to take out any other html tags here, including text in between
-        // const htmlStrings = noPtag.match(/<\s*[a-z]*[^>]*>(.*?)<\s*\/\s*[a-z]*>/g); //https://www.regextester.com/27540
-        // if(htmlStrings != null){
-        //     for(var b = 0; b < htmlStrings.length; b++){
-        //         noPtag = noPtag.replace(htmlStrings[b],"");
-        //     }
-        // }
-        //change tabs to space
-        noPtag = noPtag.replace(/&nbsp;/g, " ");
-        //remove if only consists of one word
-        //if the string consists of 4 or more whitespaces
-        if(noPtag.split(/\s/g).length >= 4){
-            matchesFormatted.push(noPtag);
-        } 
+    try{
+        //only works if news page uses p tags
+        //filter by those between <p> tags
+        const matches = data.match(/<p(\s[^>]*)?>(.*?)<\s*\/\s*p>/g); //array of strings between <p> or <p class="dfsfd"> tags
+        var matchesFormatted = [];
+        for(var a = 0; a < matches.length; a++){
+            var noPtag = matches[a].toString();
+            //take out all the html tags
+            noPtag = noPtag.replace(/<\s*[\/]?\s*[a-z]*[^>]*>/g, "");
+            // //need to take out any other html tags here, including text in between
+            // const htmlStrings = noPtag.match(/<\s*[a-z]*[^>]*>(.*?)<\s*\/\s*[a-z]*>/g); //https://www.regextester.com/27540
+            // if(htmlStrings != null){
+            //     for(var b = 0; b < htmlStrings.length; b++){
+            //         noPtag = noPtag.replace(htmlStrings[b],"");
+            //     }
+            // }
+            //change tabs to space
+            noPtag = noPtag.replace(/&nbsp;/g, " ");
+            //remove if only consists of one word
+            //if the string consists of 4 or more whitespaces
+            if(noPtag.split(/\s/g).length >= 4){
+                matchesFormatted.push(noPtag);
+            } 
+        }
+        return matchesFormatted.join(" ");
+    }catch(e){
+        return e;
     }
-    return matchesFormatted.join(" ");
 }
 
 function callVirusTotalAPI(){
-    var scan_url = "www.google.com";
-    var b64_url = btoa(scan_url).replace("=","");
-    var vt_api_key = "7b95432dccf2df176c906a8e2971d571a3f0863d585a9064442b6035f2553405";
-    var retrieve_url = "https://www.virustotal.com/api/v3/urls/{id}".replace("{id}", b64_url);
-    var results = "not called";
-    //call api
-    $.ajax({
-        url:  retrieve_url,
-        type: "GET",
-        headers: {
-            "X-Apikey": vt_api_key
-        },
-        contentType: "application/json",
-        timeout: 5000,
-        crossDomain : true, //mandatory
-        success: function (data, status, jqXHR) {
-            // data
-            // "HTTP Request triggered correctly, try to add a name parameter in your request
-            //  for a personalised response."
-            // status "success"
-            // jqXHR
-            //  {"readyState":4,"responseText":"HTTP Request triggered correctly, 
-            //  try to add a name parameter in your request for a personalised response.",
-            //  "status":200,"statusText":"OK"}
-            //alert("done" + JSON.stringify(data));
-            results = JSON.parse(jqXHR.responseText)['data']['attributes']['last_analysis_stats'];
-            addVTResults(JSON.stringify(results));
-        },
-        error: function (jqXHR, status) {
-            // error handler
-            addVTResults(JSON.stringify(jqXHR));
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+        var scan_url = tabs[0].url;
+        var b64_url = btoa(scan_url).toString().replace(/[=]/g,"");
+        var vt_api_key = "7b95432dccf2df176c906a8e2971d571a3f0863d585a9064442b6035f2553405";
+        var retrieve_url = "https://www.virustotal.com/api/v3/urls/{id}".replace("{id}", b64_url);
+        var results = "not called";
+        //call api
+        $.ajax({
+            url:  retrieve_url,
+            type: "GET",
+            headers: {
+                "X-Apikey": vt_api_key
+            },
+            contentType: "application/json",
+            timeout: 5000,
+            crossDomain : true, //mandatory
+            success: function (data, status, jqXHR) {
+                // data
+                // "HTTP Request triggered correctly, try to add a name parameter in your request
+                //  for a personalised response."
+                // status "success"
+                // jqXHR
+                //  {"readyState":4,"responseText":"HTTP Request triggered correctly, 
+                //  try to add a name parameter in your request for a personalised response.",
+                //  "status":200,"statusText":"OK"}
+                //alert("done" + JSON.stringify(data));
+                results = JSON.parse(jqXHR.responseText)['data']['attributes']['last_analysis_stats'];
+                addVTResults(JSON.stringify(results));
+            },
+            error: function (jqXHR, status) {
+                // error handler
+                addVTResults(JSON.stringify(jqXHR));
+            }
+        });
+        }
+    );
+}
+
+function callAzureAPI(){
+    var masterkey = "qX3ocFWaQ0d3xgFfgu84cgKb6PiJvFMoKVmeSfQGNOyKFWab1nT/oA==";
+    var httpReqLink = "https://teamrev3lations.azurewebsites.net/api/python_azure?code=" + masterkey;
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
+        //var scan_url = tabs[0].url;
+        var scan_url = "www.channelnewsasia.com";
+        //call api
+        try{
+            $.ajax({
+                url:  httpReqLink,
+                type: "GET",
+                data: {
+                    url: urlString
+                },
+                contentType: "application/json",
+                timeout: 5000,
+                crossDomain : true, //mandatory
+                success: function (data, status, jqXHR) {
+                    // data
+                    // "HTTP Request triggered correctly, try to add a name parameter in your request
+                    //  for a personalised response."
+                    // status "success"
+                    // jqXHR
+                    //  {"readyState":4,"responseText":"HTTP Request triggered correctly, 
+                    //  try to add a name parameter in your request for a personalised response.",
+                    //  "status":200,"statusText":"OK"}
+                    //alert("done" + JSON.stringify(data));
+                    addResults(JSON.stringify(jqXHR));
+                },
+                error: function (jqXHR, status) {
+                    // error handler
+                    addResults(JSON.stringify(jqXHR));
+                }
+            });
+        } catch (e){
+            alert("cant call api " + e)
         }
     });
 }
-
-// function callAzureAPI(){
-//     var masterkey = "qX3ocFWaQ0d3xgFfgu84cgKb6PiJvFMoKVmeSfQGNOyKFWab1nT/oA==";
-//     var httpReqLink = "https://teamrev3lations.azurewebsites.net/api/python_azure?code=" + masterkey;
-//     var urlString = "www.google.com";
-//     //call api
-//     try{
-//         $.ajax({
-//             url:  httpReqLink,
-//             type: "GET",
-//             data: {
-//                 url: urlString
-//             },
-//             contentType: "application/json",
-//             timeout: 5000,
-//             crossDomain : true, //mandatory
-//             success: function (data, status, jqXHR) {
-//                 // data
-//                 // "HTTP Request triggered correctly, try to add a name parameter in your request
-//                 //  for a personalised response."
-//                 // status "success"
-//                 // jqXHR
-//                 //  {"readyState":4,"responseText":"HTTP Request triggered correctly, 
-//                 //  try to add a name parameter in your request for a personalised response.",
-//                 //  "status":200,"statusText":"OK"}
-//                 //alert("done" + JSON.stringify(data));
-//                 addResults(JSON.stringify(jqXHR));
-//             },
-//             error: function (jqXHR, status) {
-//                 // error handler
-//                 addResults(JSON.stringify(jqXHR));
-//             }
-//         });
-//     } catch (e){
-//         alert("cant call api " + e)
-//     }
-// }
 
 // call andre's backend AI fake news checker
 //{"readyState":4,"responseText":"Real","status":200,"statusText":"success"}

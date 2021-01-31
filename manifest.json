@@ -12,7 +12,7 @@
         }
     ],
     "browser_action": {
-        "default_icon": "cute-ghost.png",
+        "default_icon": "IncognitoV1.png",
         "default_popup": "popup.html"
     },
     "background": {
