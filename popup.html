@@ -1,7 +1,10 @@
 <!doctype html>
 <html>
     <head>
-        <title>Fake News Detection Results</title>
+        <link rel="stylesheet" href="styles.css">
+        <div id="demobox">
+            <h3>Results</h1>
+        </div>
     </head>
     <style type="text/css">
         body {
@@ -10,11 +13,32 @@
     </style>
     <script type="text/javascript" src="jquery-3.5.1.min.js"></script>
     <script type="text/javascript" src="popup.js"></script>
+
     <body>
-        <h3>Results</h3>
+        <div class="blog-card">
+            <!-- <div class="meta">
+              <div class="photo" style="background-image: url(https://storage.googleapis.com/chydlx/codepen/blog-cards/image-1.jpg)"></div>
+            </div> -->
+            <div class="description">
+              <h1>Fake News</h1>
+              <h2>The website contains fake news</h2>
+              <p>Our machine learning algorithm has detected fake news on this website</p>
+            </div>
+          </div>
+          <div class="blog-card alt">
+            <!-- <div class="meta">
+              <div class="photo" style="background-image: url(https://storage.googleapis.com/chydlx/codepen/blog-cards/image-2.jpg)"></div>
+            </div> -->
+            <div class="description">
+              <h1>VirusTotal</h1>
+              <h2>The website is associated with malicious websites</h2>
+              <p>VirusTotal has detected malicious presence on this website</p>
+            </div>
+          </div>
+
         <!--insert the stats-->
         <p id="legitimacy_results"></p>
         <p id="malware_results"></p>
-        <button>Detailed Analysis</button>
+        <a class="btn black">Detailed Analysis</a>
     </body>
 </html>
