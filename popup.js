@@ -1,8 +1,9 @@
 
 function addResults(data){
-    if(data == "error"){
+    if(data != "error"){
         var ifFake = "The website contains fake news";
-        var ifFakeExp = "Our machine learning algorithm has detected fake news on this website";
+        //var ifFakeExp = "Our machine learning algorithm has detected fake news on this website";
+        var ifFakeExp = "We advise you NOT to continue visiting this website";
         var ifReal = "This website is safe";
         var ifRealExp = "Nothing wrong has been detected by our algorithms";
         var legitimacy = false;
@@ -17,8 +18,8 @@ function addResults(data){
             document.getElementById("legitimacy_results_exp").innerText = ifFakeExp;
         }
     } else {
-        document.getElementById("legitimacy_results").innerText = "An error has occurred";
-        document.getElementById("legitimacy_results_exp").innerText = "We are unable to detect any information";
+        document.getElementById("legitimacy_results").innerText = "We are unable to detect any information";
+        //document.getElementById("legitimacy_results_exp").innerText = "We are unable to detect any information";
     }
 }
 
@@ -27,10 +28,10 @@ function addVTResults(data){
     //sample output
     //{"harmless":75,"malicious":0,"suspicious":0,"timeout":0,"undetected":8}
     var malicioushits = JSON.parse(data).malicious;
-    var ifFake = "VirusTotal has detected malicious presence on this website";
-    var ifFakeExp = "There are " + malicioushits + " engines that detected this website as malicious";
+    var ifFake = "We have detected a malicious presence on this website";
+    var ifFakeExp = "There are " + malicioushits + " engines that detected this website as malicious, we advise you not to visit this website";
     var ifReal = "This website is safe";
-    var ifRealExp = "Nothing wrong has been detected by VirusTotal"
+    var ifRealExp = "Nothing wrong has been detected by our malicious detection algorithms"
     var malicious = false;
     if(malicioushits > 0){
         malicious = true
