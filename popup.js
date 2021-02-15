@@ -2,6 +2,7 @@
 function addResults(data){
     if(data != "error"){
         var ifFake = "The website contains fake news";
+        //var ifFakeExp = "Our machine learning algorithm has detected fake news on this website";
         var ifFakeExp = "We advise you NOT to continue visiting this website";
         var ifReal = "This website is safe";
         var ifRealExp = "Nothing wrong has been detected by our algorithms";
@@ -18,10 +19,12 @@ function addResults(data){
         }
     } else {
         document.getElementById("legitimacy_results").innerText = "We are unable to detect any information";
+        //document.getElementById("legitimacy_results_exp").innerText = "We are unable to detect any information";
     }
 }
 
 function addVTResults(data){
+    //more than 5 hits on malicious we will mark as fake
     //sample output
     //{"harmless":75,"malicious":0,"suspicious":0,"timeout":0,"undetected":8}
     var malicioushits = JSON.parse(data).malicious;
@@ -46,7 +49,9 @@ function addVTResults(data){
 // `DOMContentLoaded` event on the document, and adding your listeners to
 // specific elements when it triggers.
 document.addEventListener('DOMContentLoaded', function () {
+    //addResults("fake 25%"); //temporary put in because idw to keep calling the api
     callVirusTotalAPI();
+    //callFakeNewsCheckerAPI();
     //callAzureAPI();
     try{
         getTextFromHtml();
@@ -80,9 +85,15 @@ function filterOutWordsFromHTML(data){
         var matchesFormatted = [];
         for(var a = 0; a < matches.length; a++){
             var noPtag = matches[a].toString();
-            //https://www.regextester.com/27540
             //take out all the html tags
             noPtag = noPtag.replace(/<\s*[\/]?\s*[a-z]*[^>]*>/g, "");
+            // //need to take out any other html tags here, including text in between
+            // const htmlStrings = noPtag.match(/<\s*[a-z]*[^>]*>(.*?)<\s*\/\s*[a-z]*>/g); //https://www.regextester.com/27540
+            // if(htmlStrings != null){
+            //     for(var b = 0; b < htmlStrings.length; b++){
+            //         noPtag = noPtag.replace(htmlStrings[b],"");
+            //     }
+            // }
             //change tabs to space
             noPtag = noPtag.replace(/&nbsp;/g, " ");
             //remove if only consists of one word
