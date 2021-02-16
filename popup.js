@@ -27,18 +27,20 @@ function addVTResults(data){
     //more than 5 hits on malicious we will mark as fake
     //sample output
     //{"harmless":75,"malicious":0,"suspicious":0,"timeout":0,"undetected":8}
+    //for azure api, new sample output
+    //{"maldomain_result": false, "whois_result": false, "vt_result": {"harmless": 76, "malicious": 0, "suspicious": 0, "timeout": 0, "undetected": 7}, "puny_result": false}
     var malicioushits = JSON.parse(data).malicious;
     var ifFake = "We have detected a malicious presence on this website";
     var ifFakeExp = "There are " + malicioushits + " engines that detected this website as malicious, we advise you not to visit this website";
     var ifReal = "This website is safe";
     var ifRealExp = "Nothing wrong has been detected by our malicious detection algorithms"
     var malicious = false;
-    if(malicioushits > 0){
-        malicious = true
-    }
+    //if(malicioushits > 0){
+    //    malicious = true
+    //}
     if(!malicious){
         document.getElementById("malware_results").innerText = ifReal;
-        document.getElementById("malware_results_exp").innerText = ifRealExp;
+        document.getElementById("malware_results_exp").innerText = data;
     } else {
         document.getElementById("malware_results").innerText = ifFake;
         document.getElementById("malware_results_exp").innerText = ifFakeExp;
@@ -50,9 +52,9 @@ function addVTResults(data){
 // specific elements when it triggers.
 document.addEventListener('DOMContentLoaded', function () {
     //addResults("fake 25%"); //temporary put in because idw to keep calling the api
-    callVirusTotalAPI();
+    //callVirusTotalAPI();
     //callFakeNewsCheckerAPI();
-    //callAzureAPI();
+    callAzureAPI();
     try{
         getTextFromHtml();
     } catch (e) {
@@ -148,19 +150,19 @@ function callVirusTotalAPI(){
 }
 
 function callAzureAPI(){
-    var masterkey = "qX3ocFWaQ0d3xgFfgu84cgKb6PiJvFMoKVmeSfQGNOyKFWab1nT/oA==";
-    var httpReqLink = "https://teamrev3lations.azurewebsites.net/api/python_azure?code=" + masterkey;
+    var funckey = "y/cfuUUQAjm6ZD1Y5zvqa1gqvOlun3K3aiA1/5Fdv/OpUu0tnXVhiA==";
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs){
-        //var scan_url = tabs[0].url;
-        var scan_url = "www.channelnewsasia.com";
+        var scan_url = tabs[0].url;
+        //var scan_url = "www.channelnewsasia.com";
+        var httpReqLink = "https://teamrev3lations.azurewebsites.net/api/domaincheck?code=" + funckey + "&url=" + scan_url;
         //call api
         try{
             $.ajax({
                 url:  httpReqLink,
-                type: "GET",
-                data: {
-                    url: urlString
-                },
+                type: "POST",
+                // data: {
+                //     url: scan_url
+                // },
                 contentType: "application/json",
                 timeout: 5000,
                 crossDomain : true, //mandatory
@@ -174,11 +176,16 @@ function callAzureAPI(){
                     //  try to add a name parameter in your request for a personalised response.",
                     //  "status":200,"statusText":"OK"}
                     //alert("done" + JSON.stringify(data));
-                    addResults(JSON.stringify(jqXHR));
+                    // {"readyState":4,
+                    // "responseText":"{\"maldomain_result\": false, \"whois_result\": false, 
+                    // \"vt_result\": {\"harmless\": 76, \"malicious\": 0, \"suspicious\": 0, \"timeout\": 0, \"undetected\": 7}, 
+                    // \"puny_result\": false}","status":200,"statusText":"OK"}
+                    
+                    addVTResults(jqXHR.responseText);
                 },
                 error: function (jqXHR, status) {
                     // error handler
-                    addResults(JSON.stringify(jqXHR));
+                    addVTResults(JSON.stringify(jqXHR));
                 }
             });
         } catch (e){
